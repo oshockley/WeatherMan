@@ -30,5 +30,5 @@ A fast and responsive weather dashboard built with React and Vite. This app allo
 ### 1. Clone the repository
 
 ```bash
-
+git clone https://github.com/oshockley/WeatherMan.git
 cd WeatherMan
