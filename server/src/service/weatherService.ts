@@ -1,31 +1,29 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import axios from 'axios';
 
-// TODO: Define an interface for the Coordinates object
+const WEATHER_API_URL = process.env.API_BASE_URL;
+const API_KEY = process.env.API_KEY;
 
-// TODO: Define a class for the Weather object
-
-// TODO: Complete the WeatherService class
-class WeatherService {
-  // TODO: Define the baseURL, API key, and city name properties
-  // TODO: Create fetchLocationData method
-  // private async fetchLocationData(query: string) {}
-  // TODO: Create destructureLocationData method
-  // private destructureLocationData(locationData: Coordinates): Coordinates {}
-  // TODO: Create buildGeocodeQuery method
-  // private buildGeocodeQuery(): string {}
-  // TODO: Create buildWeatherQuery method
-  // private buildWeatherQuery(coordinates: Coordinates): string {}
-  // TODO: Create fetchAndDestructureLocationData method
-  // private async fetchAndDestructureLocationData() {}
-  // TODO: Create fetchWeatherData method
-  // private async fetchWeatherData(coordinates: Coordinates) {}
-  // TODO: Build parseCurrentWeather method
-  // private parseCurrentWeather(response: any) {}
-  // TODO: Complete buildForecastArray method
-  // private buildForecastArray(currentWeather: Weather, weatherData: any[]) {}
-  // TODO: Complete getWeatherForCity method
-  // async getWeatherForCity(city: string) {}
+interface WeatherData {
+  lat: number;
+  lon: number;
 }
 
-export default new WeatherService();
+export const getWeatherData = async (city: string) => {
+  try {
+    // Make the API request
+    const response = await axios.get(`${WEATHER_API_URL}/data/2.5/forecast`, {
+      params: { q: city, appid: API_KEY },
+    });
+
+    // Type checking
+    const data = response.data as { list: WeatherData[] };
+
+    if (!data.list || !data.list.length) throw new Error('City not found');
+
+    const { lat, lon } = data.list[0];  // Accessing the first item from list
+
+    return { lat, lon };  // Return lat, lon or more data as needed
+  } catch (error: any) {  // Use `any` to handle the error properly
+    throw new Error(`Error fetching weather data for ${city}: ${error.message}`);
+  }
+};

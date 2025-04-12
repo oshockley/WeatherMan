@@ -1,19 +1,48 @@
 import { Router } from 'express';
+import { getWeatherData } from '../../service/weatherService';
+import { getHistory, saveCity, deleteCity } from '../../service/historyService';
+
 const router = Router();
 
-// import HistoryService from '../../service/historyService.js';
-// import WeatherService from '../../service/weatherService.js';
+// ✅ POST: Fetch weather and save city
+router.post('/', async (req, res) => {
+  const { city } = req.body;
 
-// TODO: POST Request with city name to retrieve weather data
-router.post('/', (req, res) => {
-  // TODO: GET weather data from city name
-  // TODO: save city to search history
+  if (!city) {
+    return res.status(400).json({ error: 'City is required in request body.' });
+  }
+
+  try {
+    const weatherData = await getWeatherData(city);
+    saveCity(city); // Save to history
+    return res.json(weatherData);  // Ensure that the response is returned
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to retrieve weather data.' });
+  }
 });
 
-// TODO: GET search history
-router.get('/history', async (req, res) => {});
+// ✅ GET: Return all previously searched cities
+router.get('/history', (req, res) => {  // Removed unused `req`
+  try {
+    const history = getHistory();
+    return res.json(history); // Return the response here
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to read search history.' });
+  }
+});
 
-// * BONUS TODO: DELETE city from search history
-router.delete('/history/:id', async (req, res) => {});
+// ✅ BONUS DELETE: Remove a city by id
+router.delete('/history/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    deleteCity(id);
+    return res.json({ message: `Deleted city with id ${id}` });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to delete city from history.' });
+  }
+});
 
 export default router;

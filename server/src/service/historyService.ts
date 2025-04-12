@@ -1,17 +1,53 @@
-// TODO: Define a City class with name and id properties
+import fs from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
-// TODO: Complete the HistoryService class
-class HistoryService {
-  // TODO: Define a read method that reads from the searchHistory.json file
-  // private async read() {}
-  // TODO: Define a write method that writes the updated cities array to the searchHistory.json file
-  // private async write(cities: City[]) {}
-  // TODO: Define a getCities method that reads the cities from the searchHistory.json file and returns them as an array of City objects
-  // async getCities() {}
-  // TODO Define an addCity method that adds a city to the searchHistory.json file
-  // async addCity(city: string) {}
-  // * BONUS TODO: Define a removeCity method that removes a city from the searchHistory.json file
-  // async removeCity(id: string) {}
+const historyPath = path.join(__dirname, '../db/db.json');
+
+interface City {
+  id: string;
+  name: string;
 }
 
-export default new HistoryService();
+class HistoryService {
+  private read(): City[] {
+    if (!fs.existsSync(historyPath)) return [];
+
+    const data = fs.readFileSync(historyPath, 'utf8');
+    try {
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  private write(cities: City[]): void {
+    fs.writeFileSync(historyPath, JSON.stringify(cities, null, 2));
+  }
+
+  getCities(): City[] {
+    return this.read();
+  }
+
+  addCity(name: string): City {
+    const cities = this.read();
+    const newCity: City = { id: uuidv4(), name };
+
+    if (!cities.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+      cities.push(newCity);
+      this.write(cities);
+    }
+
+    return newCity;
+  }
+
+  removeCity(id: string): void {
+    const cities = this.read();
+    const updated = cities.filter((city) => city.id !== id);
+    this.write(updated);
+  }
+}
+
+export const getHistory = () => new HistoryService().getCities();
+export const saveCity = (name: string) => new HistoryService().addCity(name);
+export const deleteCity = (id: string) => new HistoryService().removeCity(id);
